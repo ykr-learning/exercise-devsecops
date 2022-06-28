@@ -309,7 +309,7 @@ pipeline {
         always {
             sh label: "Stop sidecar container", script: "docker stop ${JOB_BASE_NAME}-${BUILD_ID}"
             sh label: "List files current folder", script: "ls -al"
-            sh label: "List reports", script: "ls -al reports"
+            sh label: "List reports", script: "ls -al reports | true"
             archiveArtifacts artifacts: "*-results.txt"
             archiveArtifacts artifacts: "reports/*.html"
             publishHTML([
