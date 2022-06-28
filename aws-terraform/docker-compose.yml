@@ -1,0 +1,53 @@
+---
+version: "3.5"
+networks:
+  default:
+    driver: bridge
+    name: lab
+services:
+  jenkins:
+    container_name: jenkins
+    environment:
+      - JAVA_OPTS=-Dhudson.model.DirectoryBrowserSupport.CSP="sandbox allow-scripts;script-src 'unsafe-inline'; style-src 'unsafe-inline';" # Allow inline JavaScript
+      - PLUGINS_FORCE_UPGRADE=true # Enforce upgrade of native plugins at startup
+    image: jenkinsci/blueocean
+    networks:
+      default:
+        aliases:
+          - jenkins.demo.local
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    user: :115 # part of the docker group as the user needs to be able to start containers
+    volumes:
+      - jenkins_home:/var/jenkins_home:rw # Workspace home
+      - /var/run/docker.sock:/var/run/docker.sock:ro # Allows Jenkins to stop/start containers
+  portainer:
+    container_name: portainer
+    environment:
+      - JAVA_OPTS=-Dhudson.model.DirectoryBrowserSupport.CSP="sandbox allow-scripts;script-src 'unsafe-inline'; style-src 'unsafe-inline';" # Allow inline JavaScript
+      - PLUGINS_FORCE_UPGRADE=true # Enforce upgrade of native plugins at startup
+    image: portainer/portainer-ce:2.14.0
+    networks:
+      default:
+        aliases:
+          - jenkins.demo.local
+    ports:
+      - "8000:8000"
+      - "9443:9443"
+    restart: always
+    user: :115 # part of the docker group as the user needs to be able to start containers
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock # Allows Jenkins to stop/start containers
+
+
+
+
+volumes:
+  jenkins_home:
+    name: jenkins_home
+  portainer_data:
+    name: portainer_data
+
+
