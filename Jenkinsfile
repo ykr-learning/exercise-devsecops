@@ -13,8 +13,8 @@ pipeline {
     environment { // Environment variables defined for all steps
         DOCKER_IMAGE = "ykrlearning22/juice-shop"
         TOOLS_IMAGE = "registry.demo.local:5000/tools-image"
-        JENKINS_UID = 998 // User ID under which Jenkins runs
-        JENKINS_GID = 900 // Group ID under which Jenkins runs
+        JENKINS_UID = 0 // User ID under which Jenkins runs
+        JENKINS_GID = 0 // Group ID under which Jenkins runs
         SONAR_KEY = "juice-shop"
         registryCredential = 'dockerhub_id'
         dockerImage = '' 
@@ -27,6 +27,12 @@ pipeline {
             steps {
                 script {
                     sh(script: "env")
+                    sh(script: "mkdir -p reports &>/dev/null")
+                    sh(script: "rm -rfv reports/* ")
+                    sh(script: "ls -al reports ")
+                    sh(script: "whoami || true")
+                    sh(script: "id -u || true")     // 0  --> JENKINS_UID
+                    sh(script: "id -g || true")     //115 --> JENKINS_GID
                 }
             }
         }
@@ -128,6 +134,7 @@ pipeline {
                     sh label: 'check src', script: 'ls -al /src'
                     sh label: 'check reports', script: 'ls -al /reports'
                     sh label: 'check wd', script: 'ls -al'
+                    sh label: 'check pwd', script: 'pwd'
 
                     // sh label: 'copy src files', script: 'cp ./* /src/ --force'
                     // sh label: 'check src', script: 'ls -al /src'
@@ -135,16 +142,17 @@ pipeline {
                     // Fail stage when a vulnerability having a base CVSS score of 6 or higher is found
                     def result = sh label: "dependency-check", returnStatus: true,
                         script: """\
-                            mkdir -p reports &>/dev/null
                             # Fix permissions as this container is being run as root
                             chown "${JENKINS_UID}:${JENKINS_GID}" reports
                             /usr/share/dependency-check/bin/dependency-check.sh \
                             --failOnCVSS 6 \
-                            --out "${WORKSPACE}/reports" \
+                            --out "/reports" \
                             --project "${JOB_BASE_NAME}" \
                             --scan "."
                             # Fix permissions as this container is being run as root
-                            chown "${JENKINS_UID}:${JENKINS_GID}" reports/dependency-check-report.html
+                            chown "${JENKINS_UID}:${JENKINS_GID}" /reports/dependency-check-report.html
+                            chmod 777 /reports/dependency-check-report.html
+                            ls -al /reports
                         """
                     if (result > 0) {
                         unstable(message: "Insecure libraries found")
@@ -152,6 +160,7 @@ pipeline {
                 }
             }
         }
+
 
         stage("Build image") {
             steps {
@@ -174,18 +183,9 @@ pipeline {
         stage("Push to registry") {
             steps {
                 script {
-                    writeFile file:"/etc/docker/daemon.json", text: """{
-                            \"insecure-registries\": [
-                               \"172.18.0.2:5000\"
-                            ]
-                      }"""
-                    // sh script: "service docker restart"
-                    // sh label: "Push to registry", script: "docker push ${DOCKER_IMAGE}:$tag"
                     docker.withRegistry( '', registryCredential ) { 
                         dockerImage.push() 
                     }
-
-
                 }
             }
         }
@@ -275,7 +275,12 @@ pipeline {
                 docker {
                     image "owasp/zap2docker-stable"
                     // Make sure that the container can access the sidecar
-                    args "--network=lab --tty --volume ${WORKSPACE}:/zap/wrk:rw"
+                    args '''--network=lab \
+                        -e user=$USER \
+                        -u 0:0 \
+                        --tty \
+                        --volume ${WORKSPACE}:/zap/wrk:rw \
+                        --volume ${WORKSPACE}/reports:/reports:rw '''
                     reuseNode true
                 }
             }
@@ -283,7 +288,7 @@ pipeline {
                 script {
                     def result = sh label: "OWASP ZAP", returnStatus: true,
                         script: """\
-                            mkdir -p reports &>/dev/null
+                            ls -al /reports
                             curl --max-time 120 \
                                 --retry 60 \
                                 --retry-connrefused \
@@ -294,8 +299,11 @@ pipeline {
                             -m 5 \
                             -T 5\
                             -I \
-                            -r reports/zapreport.html \
+                            -r /reports/zapreport.html \
                             -t "http://${JOB_BASE_NAME}-${BUILD_ID}:80"
+                            chown "${JENKINS_UID}:${JENKINS_GID}" /reports/zapreport.html
+                            chmod 777 /reports/zapreport.html
+                            ls -al /reports
                     """
                     if (result > 0) {
                         unstable(message: "OWASP ZAP issues found")
@@ -303,14 +311,6 @@ pipeline {
                 }
             }
         }
-
-        stage('Cleaning up') { 
-            steps { 
-                sh "docker rmi $DOCKER_IMAGE:$tag" 
-            }
-        } 
-
-
     }
 
     post {
