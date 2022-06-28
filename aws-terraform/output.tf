@@ -10,3 +10,12 @@ output "Webserver-Public-IP" {
 output "ssh-command" {
   value = "ssh -i webserver-devsecops-key.pem  ubuntu@${aws_instance.webserver.public_ip}"
 }
+
+output "portainer-url" {
+  value = "https://${aws_instance.webserver.public_ip}:9443/"
+}
+
+output "jenkins-url" {
+  value = "http://${aws_instance.webserver.public_ip}:8080/"
+}
+

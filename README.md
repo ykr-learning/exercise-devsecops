@@ -10,19 +10,19 @@ chmod 700 webserver-devsecops-key.pem
 
 terraform fmt & terraform validate & terraform apply
 
-ssh -i webserver-devsecops-key.pem  ubuntu@44.192.112.242
+ssh -i webserver-devsecops-key.pem  ubuntu@{ip}
 
 terraform destroy
 
 ### Portainer
-curl http://44.192.112.242:9443/
+curl https://{ip}:9443/
 
 admin
 adminadmin
 
 
 ### Jenkins
-curl http://44.192.112.242:8080/
+curl http://{ip}:8080/
 
 sudo docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 
@@ -31,13 +31,11 @@ admin_pwd
 admin_user
 mail-fake@gmail.com
 
-http://44.192.112.242:8080/
-
 install plugins:
-GitHub plugin Version 1.34.4 (to connect to github)
-Docker Pipeline Version 1.28 (to build in docker containers, and build images)
-Warnings Next Generation Version 9.13.0 (to publish hadolint reports)
-Official OWASP ZAP Version 1.1.0
+* GitHub - Version 1.34.4 (to connect to github)
+* Docker Pipeline - Version 1.28 (to build in docker containers, and build images)
+* Warnings Next Generation - Version 9.13.0 (to publish hadolint reports)
+* Official OWASP ZAP - Version 1.1.0
 
 new item: github-pipeline
 type: Pipeline Multibranches
