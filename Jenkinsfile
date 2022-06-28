@@ -34,7 +34,6 @@ pipeline {
             agent {
                 docker {
                     image "docker.io/hadolint/hadolint:2.9.3-debian"
-                    args "-u root"
                     reuseNode true
                     }
             }
