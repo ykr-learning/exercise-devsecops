@@ -43,6 +43,11 @@ type: Pipeline Multibranches
 Add branch source:
 https://github.com/ykr-learning/exercise-devsecops.git
 
+Manage Jenkins > Manage credentials > globals > Add credential
+type: username & password
+id: dockerhub_id
+
+
 check disk space:
 df -h
 

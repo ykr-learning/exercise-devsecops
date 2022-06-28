@@ -16,7 +16,8 @@ pipeline {
         JENKINS_UID = 998 // User ID under which Jenkins runs
         JENKINS_GID = 900 // Group ID under which Jenkins runs
         SONAR_KEY = "juice-shop"
-        registryCredential = 'dockerhub_id' 
+        registryCredential = 'dockerhub_id'
+        dockerImage = '' 
     }
 
     agent any
@@ -157,7 +158,7 @@ pipeline {
                             tag = "${BRANCH_NAME}"
                         }
                     }
-                    image = docker.build("$DOCKER_IMAGE:$tag")
+                    dockerImage = docker.build("$DOCKER_IMAGE:$tag")
                 }
             }
         }
