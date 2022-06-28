@@ -34,8 +34,10 @@ mail-fake@gmail.com
 http://44.192.112.242:8080/
 
 install plugins:
-github
-Docker Pipeline Version 1.28 
+GitHub plugin Version 1.34.4 (to connect to github)
+Docker Pipeline Version 1.28 (to build in docker containers, and build images)
+Warnings Next Generation Version 9.13.0 (to publish hadolint reports)
+Official OWASP ZAP Version 1.1.0
 
 new item: github-pipeline
 type: Pipeline Multibranches
