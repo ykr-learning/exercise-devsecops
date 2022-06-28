@@ -270,39 +270,39 @@ pipeline {
         }
 */
 
-        // stage("OWASP ZAP") {
-        //     agent {
-        //         docker {
-        //             image "owasp/zap2docker-stable"
-        //             // Make sure that the container can access the sidecar
-        //             args "--network=lab --tty --volume ${WORKSPACE}:/zap/wrk:rw"
-        //             reuseNode true
-        //         }
-        //     }
-        //     steps {
-        //         script {
-        //             def result = sh label: "OWASP ZAP", returnStatus: true,
-        //                 script: """\
-        //                     mkdir -p reports &>/dev/null
-        //                     curl --max-time 120 \
-        //                         --retry 60 \
-        //                         --retry-connrefused \
-        //                         --retry-delay 5 \
-        //                         --fail \
-        //                         --silent http://${JOB_BASE_NAME}-${BUILD_ID}:80 || exit 1
-        //                     zap-baseline.py \
-        //                     -m 5 \
-        //                     -T 5\
-        //                     -I \
-        //                     -r reports/zapreport.html \
-        //                     -t "http://${JOB_BASE_NAME}-${BUILD_ID}:80"
-        //             """
-        //             if (result > 0) {
-        //                 unstable(message: "OWASP ZAP issues found")
-        //             }
-        //         }
-        //     }
-        // }
+        stage("OWASP ZAP") {
+            agent {
+                docker {
+                    image "owasp/zap2docker-stable"
+                    // Make sure that the container can access the sidecar
+                    args "--network=lab --tty --volume ${WORKSPACE}:/zap/wrk:rw"
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    def result = sh label: "OWASP ZAP", returnStatus: true,
+                        script: """\
+                            mkdir -p reports &>/dev/null
+                            curl --max-time 120 \
+                                --retry 60 \
+                                --retry-connrefused \
+                                --retry-delay 5 \
+                                --fail \
+                                --silent http://${JOB_BASE_NAME}-${BUILD_ID}:80 || exit 1
+                            zap-baseline.py \
+                            -m 5 \
+                            -T 5\
+                            -I \
+                            -r reports/zapreport.html \
+                            -t "http://${JOB_BASE_NAME}-${BUILD_ID}:80"
+                    """
+                    if (result > 0) {
+                        unstable(message: "OWASP ZAP issues found")
+                    }
+                }
+            }
+        }
 
         stage('Cleaning up') { 
             steps { 
@@ -338,14 +338,14 @@ pipeline {
             //     reportName: "Nikto.pl scanreport"
             // ])
 
-            // publishHTML([
-            //     allowMissing: true,
-            //     alwaysLinkToLastBuild: true,
-            //     keepAll: true,
-            //     reportDir: "reports",
-            //     reportFiles: "zapreport.html",
-            //     reportName: "OWASP ZAP scanreport"
-            // ])
+            publishHTML([
+                allowMissing: true,
+                alwaysLinkToLastBuild: true,
+                keepAll: true,
+                reportDir: "reports",
+                reportFiles: "zapreport.html",
+                reportName: "OWASP ZAP scanreport"
+            ])
             
             print "send reports to warnings-ng-plugin"
             recordIssues enabledForFailure: true, aggregatingResults: true, tools: [hadoLint(pattern: '**/hadolint-results.txt')]
