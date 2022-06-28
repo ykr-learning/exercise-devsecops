@@ -23,6 +23,13 @@ pipeline {
     agent any
 
     stages {
+        stage("env"){
+            steps {
+                script {
+                    sh(script: "env")
+                }
+            }
+        }
         stage("lint") {
             agent {
                 docker {
@@ -150,14 +157,15 @@ pipeline {
             steps {
                 script {
                     // Use commit tag if it has been tagged
-                    tag = sh(returnStdout: true, script: "git tag --contains").trim()
-                    if ("$tag" == "") {
-                        if ("${BRANCH_NAME}" == "master") {
-                            tag = "latest"
-                        } else {
-                            tag = "${BRANCH_NAME}"
-                        }
-                    }
+                    // tag = sh(returnStdout: true, script: "git tag --contains").trim()
+                    // if ("$tag" == "") {
+                    //     if ("${BRANCH_NAME}" == "master") {
+                    //         tag = "latest"
+                    //     } else {
+                    //         tag = "${BRANCH_NAME}"
+                    //     }
+                    // }
+                    tag = "${BRANCH_NAME}-${BUILD_NUMBER}"
                     dockerImage = docker.build("$DOCKER_IMAGE:$tag")
                 }
             }
@@ -309,7 +317,7 @@ pipeline {
         always {
             sh label: "Stop sidecar container", script: "docker stop ${JOB_BASE_NAME}-${BUILD_ID}"
             sh label: "List files current folder", script: "ls -al"
-            sh label: "List reports", script: "ls -al reports | true"
+            sh label: "List reports", script: "ls -al reports || true"
             archiveArtifacts artifacts: "*-results.txt"
             archiveArtifacts artifacts: "reports/*.html"
             publishHTML([
