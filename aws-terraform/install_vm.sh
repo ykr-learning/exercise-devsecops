@@ -1,5 +1,5 @@
 sudo apt-get update
-sudo apt-get install \
+sudo apt-get install --assume-yes \
     ca-certificates \
     curl \
     gnupg \
