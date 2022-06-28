@@ -319,7 +319,8 @@ pipeline {
             sh label: "List files current folder", script: "ls -al"
             sh label: "List reports", script: "ls -al reports || true"
             archiveArtifacts artifacts: "*-results.txt"
-            archiveArtifacts artifacts: "reports/*.html"
+            // archiveArtifacts artifacts: "reports/*.html"
+            archiveArtifacts artifacts: "*/*.html"
             publishHTML([
                 allowMissing: true,
                 alwaysLinkToLastBuild: true,
