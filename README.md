@@ -41,7 +41,7 @@ new item: github-pipeline
 type: Pipeline Multibranches
 
 Add branch source:
-https://github.com/ykr-learning/secure-docker-build-pipeline.git
+https://github.com/ykr-learning/exercise-devsecops.git
 
 check disk space:
 df -h
